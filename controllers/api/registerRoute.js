@@ -11,8 +11,17 @@ exports.registerUser = async (req, res) => {
             res.redirect('/');
         });
     } catch (err) {
-        res.status(400).json(err);
+        if (err.name === 'SequelizeUniqueConstraintError') {
+            const isEmailError = err.errors.some(error => error.path === 'email');
+            if (isEmailError) {
+                res.status(409).render('error409', { message: 'An account with the given email already exists. Please use a different email.' });
+
+            }
+        }
+        // Handle other errors generically
+        console.error('Unexpected error occurred:', err);
+        res.status(500).render('error500', {
+            message: 'An unexpected error occurred. Please try again later.'
+        });
     }
 };
-
-module.exports = exports;

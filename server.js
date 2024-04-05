@@ -76,37 +76,59 @@ app.use((_req, res, next) => {
 app.use((err, req, res, next) => {
     if (err.status === 401) {
         axios.get('https://api.adviceslip.com/advice')
-        .then(response => {
-            const advice = response.data.slip.advice;
-            res.status(401).render('error401', { advice });
-        })
-        .catch(error => {
-            console.error('Error fetching advice:', error);
-            res.status(401).render('error401', {
-                advice: "Sorry, we couldn't fetch any advice at the moment. Please try again later."
+            .then(response => {
+                const advice = response.data.slip.advice;
+                res.status(401).render('error401', { advice });
+            })
+            .catch(error => {
+                console.error('Error fetching advice:', error);
+                res.status(401).render('error401', {
+                    advice: "Sorry, we couldn't fetch any advice at the moment. Please try again later."
+                });
             });
-        });
     } else if (err.status === 404) {
         axios.get('https://api.chucknorris.io/jokes/random')
+            .then(response => {
+                const joke = response.data.value;
+                res.render('error404', { joke });
+            })
+            .catch(error => {
+                console.error('Error fetching Chuck Norris joke:', error);
+                res.render('error404', {
+                    joke: "Chuck Norris doesn't have 404 errors. But sometimes, even he can't find what doesn't exist."
+                });
+            });
+    } else if (err.status === 409) {
+        axios.get('https://api.forismatic.com/api/1.0/?method=getQuote&lang=en&format=json')
         .then(response => {
-            const joke = response.data.value;
-            res.render('error404', { joke });
+            const quote = response.data.quoteText;
+        res.status(409).render('error409',{quote});
         })
         .catch(error => {
-            console.error('Error fetching Chuck Norris joke:', error);
-            res.render('error404', {
-                joke: "Chuck Norris doesn't have 404 errors. But sometimes, even he can't find what doesn't exist."
-            });
+  res.render('error409', 
+  )
         });
+
+    } else if (err.status === 500) { 
+        axios.get('https://api.forismatic.com/api/1.0/?method=getQuote&lang=en&format=json')
+            .then(response => {
+                const quote = response.data.quoteText;
+                res.status(500).render('error500', { quote });
+            })
+            .catch(error => {
+                console.error('Error fetching inspirational quote:', error);
+                res.status(500).render('error500', {
+                    quote: "Even in the darkest moments, we strive to find some light. Please try again later."
+                });
+            });
     } else {
-        // Handle other errors or set a default error view
-        res.status(err.status || 500);
-        res.render('error', { 
+        res.status(err.status || 500).render('error', { 
             message: err.message,
             error: {}
         });
     }
 });
+
 
 app.get('/api/google-client-id', (req, res) => {
     res.json({ clientId: process.env.GOOGLE_CLIENT_ID });
